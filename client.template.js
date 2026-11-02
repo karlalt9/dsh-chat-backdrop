@@ -5,7 +5,7 @@ window.__ModuleLoader__.load({
     const IMAGE = '__IMAGE_DATA_URL__'
 
     // Four cut-out poses of the whale girl, all transparent PNGs, keyed off a chroma
-    // background. She sits on the composer's top edge; clicking cycles the pose.
+    // background. They render as a row sitting on the composer's top edge.
     const POSES = [
       '__POSE_1_DATA_URL__',
       '__POSE_2_DATA_URL__',
@@ -134,9 +134,9 @@ window.__ModuleLoader__.load({
       '  backdrop-filter: blur(40px) saturate(160%);',
       '  -webkit-backdrop-filter: blur(40px) saturate(160%);',
       '  border: 1px solid rgba(255,255,255,.07);',
-      '}',
       // Text on menus also gets a faint shadow: cheap insurance on top of the fill.
-      '[data-menu-material] { text-shadow: 0 1px 2px rgba(0, 0, 0, .45); }',
+      '  text-shadow: 0 1px 2px rgba(0, 0, 0, .45);',
+      '}',
       // Settings and every other modal: opaque enough to read, blurred over the photo.
       // No entrance animation here: animating opacity/transform on an element that has
       // its own backdrop-filter cancels that filter for the duration of the animation.
@@ -152,7 +152,7 @@ window.__ModuleLoader__.load({
       '  -webkit-backdrop-filter: none;',
       '}',
       // User turn bubble: translucent brand tint + blur, so it reads as glass.
-      '[class*="bubble"] {',
+      '[class*="_bubble"] {',
       '  background: color-mix(in srgb, var(--dsw-specific-bubble) 72%, transparent) !important;',
       '  backdrop-filter: blur(16px) saturate(150%);',
       '  -webkit-backdrop-filter: blur(16px) saturate(150%);',
@@ -204,7 +204,10 @@ window.__ModuleLoader__.load({
       '}',
 
       // ---- sidebar ---------------------------------------------------------
-      '[class*="sidebarCol"] {',
+      // NB: --dsw-specific-sidebar-fill below is shared with the window frame and the
+      // title-bar drag strip, which is why the title-bar rule further down exists.
+      // Changing one without the other makes the title row brighter than the sidebar.
+      '[class*="_sidebarCol"] {',
       '  background: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 20%, transparent) !important;',
       '  backdrop-filter: blur(6px) saturate(140%);',
       '  -webkit-backdrop-filter: blur(6px) saturate(140%);',
@@ -221,7 +224,7 @@ window.__ModuleLoader__.load({
       // The drag strip is painted by the frame's ::before from --dsw-specific-sidebar-fill,
       // which we lowered to 9%. Give it the same density as the content column
       // (--dsw-alias-bg-base) so the title row no longer reads brighter than what is below it.
-      '[data-windows-titlebar] [class*="frame"]::before {',
+      '[data-windows-titlebar] [class*="_frame"]::before {',
       '  background: rgba(8, 12, 24, .26) !important;',
       '}',
 
@@ -527,10 +530,11 @@ window.__ModuleLoader__.load({
           }
         })
 
-        // Pointer parallax is intentionally disabled: moving the wallpaper means every
-        // backdrop-filtered surface (composer, sidebar, dialogs) has to re-sample its
-        // backdrop on every frame, which showed up as flicker while the pointer moved.
-        // The slow drift in body::before keeps the background alive instead.
+        // Pointer parallax IS enabled (see the effect below): the wallpaper shifts by up
+        // to PARALLAX_PX as the pointer moves, eased over 700ms.
+        // Trade-off worth knowing: a moving wallpaper makes every backdrop-filtered
+        // surface re-sample its backdrop, and on some GPU/driver combinations that shows
+        // up as flicker while the pointer moves. Set PARALLAX_PX to 0 to turn it off.
         ctx.effect(() => {
           if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             return
@@ -569,8 +573,8 @@ window.__ModuleLoader__.load({
         }
 
         if (React) {
-          // One component serves both jobs: it remounts per session (which is exactly
-          // when the intro should replay) and it carries the mascot badge.
+          // One component per session: it remounts when the conversation changes, which
+          // is exactly when the intro should replay. It renders nothing.
           const Intro = () => {
             React.useEffect(() => {
               playIntro()

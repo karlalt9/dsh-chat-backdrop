@@ -1,6 +1,6 @@
 {
   "name": "dsh-chat-backdrop",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "description": "DSH 聊天界面主题：自定义壁纸 + 玻璃拟态面板，输入框上沿站着四只鲸鱼娘",
   "type": "module",
   "license": "MIT",
@@ -18,6 +18,9 @@
     "url": "git+https://github.com/karlalt9/dsh-chat-backdrop.git"
   },
   "homepage": "https://github.com/karlalt9/dsh-chat-backdrop#readme",
+  "engines": {
+    "dsh": ">=0.2.0-0 <0.3.0"
+  },
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",
@@ -27,12 +30,7 @@
   "files": [
     "index.js",
     "client.js",
-    "client.template.js",
-    "gen-client.mjs",
     "cordis.patch.yml",
-    "backdrop.jpg",
-    "screenshot.jpg",
-    "assets/*.png",
     "locale/*.json",
     "icon.svg"
   ],
