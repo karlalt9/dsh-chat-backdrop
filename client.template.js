@@ -38,6 +38,36 @@ window.__ModuleLoader__.load({
       '  text-rendering: optimizeLegibility;',
       '}',
       '::selection { background: rgba(96, 165, 250, .38); color: inherit; }',
+      'body {',
+      // Theme-aware hairlines and tints: the same rules have to read correctly on a light
+      // canvas, where white-on-white borders and white table stripes simply vanish.
+      '  --cbd-l1: rgba(0, 0, 0, .05);',
+      '  --cbd-l2: rgba(0, 0, 0, .06);',
+      '  --cbd-l3: rgba(0, 0, 0, .07);',
+      '  --cbd-l4: rgba(0, 0, 0, .08);',
+      '  --cbd-l5: rgba(0, 0, 0, .10);',
+      '  --cbd-l6: rgba(0, 0, 0, .12);',
+      '  --cbd-l7: rgba(255, 255, 255, .85);',
+      '  --cbd-tint1: rgba(0, 0, 0, .02);',
+      '  --cbd-tint2: rgba(0, 0, 0, .03);',
+      '  --cbd-veil: rgba(255, 255, 255, .45);',
+      '  --cbd-titlebar: rgba(248, 250, 254, .72);',
+      '  --cbd-menu-shadow: none;',
+      '}',
+      'body[data-ds-dark-theme] {',
+      '  --cbd-l1: rgba(255,255,255,.04);',
+      '  --cbd-l2: rgba(255,255,255,.05);',
+      '  --cbd-l3: rgba(255,255,255,.06);',
+      '  --cbd-l4: rgba(255,255,255,.07);',
+      '  --cbd-l5: rgba(255,255,255,.09);',
+      '  --cbd-l6: rgba(255,255,255,.10);',
+      '  --cbd-l7: rgba(255,255,255,.22);',
+      '  --cbd-tint1: rgba(255,255,255,.025);',
+      '  --cbd-tint2: rgba(255,255,255,.045);',
+      '  --cbd-veil: rgba(2, 5, 12, .32);',
+      '  --cbd-titlebar: rgba(8, 12, 24, .26);',
+      '  --cbd-menu-shadow: 0 1px 2px rgba(0, 0, 0, .45);',
+      '}',
 
       // ---- scrollbars -------------------------------------------------------
       '*::-webkit-scrollbar { width: 10px; height: 10px; }',
@@ -98,17 +128,17 @@ window.__ModuleLoader__.load({
       '  margin: 12px 0;',
       '  padding: 4px 0 4px 14px;',
       '  border-left: 2px solid color-mix(in srgb, var(--dsw-alias-brand-primary) 72%, transparent);',
-      '  background: linear-gradient(90deg, rgba(255,255,255,.045), rgba(255,255,255,0) 72%);',
+      '  background: linear-gradient(90deg, var(--cbd-tint2), transparent 72%);',
       '  border-radius: 0 8px 8px 0;',
       '  color: var(--dsw-alias-label-secondary, inherit);',
       '}',
       'ul > li::marker { color: color-mix(in srgb, var(--dsw-alias-brand-primary) 78%, transparent); }',
       'ol > li::marker { color: var(--dsw-alias-label-tertiary, inherit); font-variant-numeric: tabular-nums; }',
-      'hr { border: 0; border-top: 1px solid rgba(255,255,255,.10); margin: 22px 0; }',
+      'hr { border: 0; border-top: 1px solid var(--cbd-l6); margin: 22px 0; }',
       'table { border-collapse: collapse; }',
-      'thead th { background: rgba(255,255,255,.05); font-weight: 600; }',
-      'tbody tr:nth-child(even) { background: rgba(255,255,255,.025); }',
-      'h1, h2 { border-bottom: 1px solid rgba(255,255,255,.09); padding-bottom: 6px; }',
+      'thead th { background: var(--cbd-l2); font-weight: 600; }',
+      'tbody tr:nth-child(even) { background: var(--cbd-tint1); }',
+      'h1, h2 { border-bottom: 1px solid var(--cbd-l5); padding-bottom: 6px; }',
 
       // ---- line weight -----------------------------------------------------
       // Only in the dark theme: the theme sets these per mode, so a blind override
@@ -133,9 +163,9 @@ window.__ModuleLoader__.load({
       '[data-menu-material] {',
       '  backdrop-filter: blur(40px) saturate(160%);',
       '  -webkit-backdrop-filter: blur(40px) saturate(160%);',
-      '  border: 1px solid rgba(255,255,255,.07);',
+      '  border: 1px solid var(--cbd-l4);',
       // Text on menus also gets a faint shadow: cheap insurance on top of the fill.
-      '  text-shadow: 0 1px 2px rgba(0, 0, 0, .45);',
+      '  text-shadow: var(--cbd-menu-shadow);',
       '}',
       // Settings and every other modal: opaque enough to read, blurred over the photo.
       // No entrance animation here: animating opacity/transform on an element that has
@@ -144,7 +174,7 @@ window.__ModuleLoader__.load({
       '  background-color: var(--dsw-alias-bg-overlay) !important;',
       '  backdrop-filter: blur(30px) saturate(160%);',
       '  -webkit-backdrop-filter: blur(30px) saturate(160%);',
-      '  box-shadow: 0 24px 70px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255,255,255,.06);',
+      '  box-shadow: 0 24px 70px rgba(0, 0, 0, .45), inset 0 1px 0 var(--cbd-l3);',
       '}',
       '[role="dialog"] [role="dialog"] {',
       '  background-color: var(--dsw-alias-bg-layer-1) !important;',
@@ -156,7 +186,7 @@ window.__ModuleLoader__.load({
       '  background: color-mix(in srgb, var(--dsw-specific-bubble) 72%, transparent) !important;',
       '  backdrop-filter: blur(16px) saturate(150%);',
       '  -webkit-backdrop-filter: blur(16px) saturate(150%);',
-      '  box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 2px 10px rgba(0,0,0,.12);',
+      '  box-shadow: inset 0 1px 0 var(--cbd-l6), 0 2px 10px rgba(0,0,0,.12);',
       '}',
 
       // ---- composer (tagged at runtime by markComposer) ----------------------
@@ -171,7 +201,7 @@ window.__ModuleLoader__.load({
       '  backdrop-filter: none;',
       '  -webkit-backdrop-filter: none;',
       '  isolation: isolate;',
-      '  box-shadow: 0 12px 34px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 0 1px rgba(255,255,255,.05) !important;',
+      '  box-shadow: 0 12px 34px rgba(0,0,0,.30), inset 0 1px 0 var(--cbd-l6), inset 0 0 0 1px var(--cbd-l2) !important;',
       // No transition on the card either: animating its own shadow/fill means animating
       // paint underneath a backdrop-filter, which is the same flicker trigger.
       '  transition: none;',
@@ -179,7 +209,7 @@ window.__ModuleLoader__.load({
       '.cbd-composer:focus-within {',
       '  background: color-mix(in srgb, var(--dsw-specific-input-major) 68%, transparent) !important;',
       '  box-shadow: 0 16px 44px rgba(0,0,0,.36),',
-      '    inset 0 1px 0 rgba(255,255,255,.22),',
+      '    inset 0 1px 0 var(--cbd-l7),',
       '    0 0 0 1.5px color-mix(in srgb, var(--dsw-alias-brand-primary) 88%, transparent),',
       '    0 0 34px color-mix(in srgb, var(--dsw-alias-brand-primary) 42%, transparent) !important;',
       '}',
@@ -214,25 +244,25 @@ window.__ModuleLoader__.load({
       // A flat gradient layer dims the panel without raising its alpha: the photo still
       // shows through, only darker. (An inset box-shadow cannot do this: it grows inward
       // from the edges and leaves the middle untouched on a tall panel.)
-      '  background-image: linear-gradient(rgba(2, 5, 12, .32), rgba(2, 5, 12, .32)) !important;',
-      '  box-shadow: inset -1px 0 0 rgba(255,255,255,.06), inset 0 1px 0 rgba(255,255,255,.04);',
+      '  background-image: linear-gradient(var(--cbd-veil), var(--cbd-veil)) !important;',
+      '  box-shadow: inset -1px 0 0 var(--cbd-l3), inset 0 1px 0 var(--cbd-l1);',
       '}',
 
       // ---- title bar -------------------------------------------------------
       // Inset shadow instead of a border: no layout shift on the drag strip.
-      '[data-windows-titlebar] { box-shadow: inset 0 -1px 0 rgba(255,255,255,.06); }',
+      '[data-windows-titlebar] { box-shadow: inset 0 -1px 0 var(--cbd-l3); }',
       // The drag strip is painted by the frame's ::before from --dsw-specific-sidebar-fill,
       // which we lowered to 9%. Give it the same density as the content column
       // (--dsw-alias-bg-base) so the title row no longer reads brighter than what is below it.
       '[data-windows-titlebar] [class*="_frame"]::before {',
-      '  background: rgba(8, 12, 24, .26) !important;',
+      '  background: var(--cbd-titlebar) !important;',
       '}',
 
       // ---- inline code & links ---------------------------------------------
       'code {',
-      '  background: color-mix(in srgb, var(--dsw-alias-markdown-inline-code, rgba(255,255,255,.10)) 85%, transparent);',
+      '  background: color-mix(in srgb, var(--dsw-alias-markdown-inline-code, var(--cbd-l6)) 85%, transparent);',
       '  border-radius: 6px;',
-      '  box-shadow: inset 0 0 0 1px rgba(255,255,255,.07);',
+      '  box-shadow: inset 0 0 0 1px var(--cbd-l4);',
       '  padding: .1em .4em;',
       '  font-size: .92em;',
       '}',
