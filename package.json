@@ -1,0 +1,49 @@
+{
+  "name": "dsh-chat-backdrop",
+  "version": "1.11.1",
+  "description": "DSH 聊天界面主题：自定义壁纸 + 玻璃拟态面板，输入框上沿站着四只鲸鱼娘",
+  "type": "module",
+  "license": "MIT",
+  "author": "karlalt9",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "theme",
+    "backdrop",
+    "glassmorphism"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karlalt9/dsh-chat-backdrop.git"
+  },
+  "homepage": "https://github.com/karlalt9/dsh-chat-backdrop#readme",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "client.template.js",
+    "gen-client.mjs",
+    "cordis.patch.yml",
+    "backdrop.jpg",
+    "assets/*.png",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "scripts": {
+    "build:client": "node gen-client.mjs"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-theme"]
+    }
+  }
+}

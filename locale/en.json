@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Chat Backdrop",
+    "description": "Paints a dimmed custom image behind the conversation area and makes the surrounding surfaces translucent so text stays readable."
+  }
+}
