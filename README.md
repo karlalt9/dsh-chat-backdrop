@@ -2,9 +2,9 @@
 
 > 给 DSH 的聊天界面换一张脸：一张壁纸铺在对话区背后，周边面板变成半透明玻璃，输入框上沿站着四只鲸鱼娘。
 
-![壁纸](assets/backdrop.jpg)
+![实机效果](screenshot.jpg)
 
-![鲸鱼娘姿势](assets/pose-1.png)
+<sub>默认工作区：壁纸铺底、侧栏与输入框半透明、输入框上沿站着四只鲸鱼娘</sub>
 
 一个纯客户端的 [DSH](https://github.com/deepseek-ai/deepseek-harness) 插件：不联网、不读本地文件、不加任何命令或工具，只做视觉。
 
@@ -49,6 +49,7 @@ node gen-client.mjs
 ```
 index.js              host 侧空实现（纯客户端插件）
 client.js             构建产物：CSS + token + 内联图片，DSH 直接加载这个
+screenshot.jpg        README 用的实机截图
 client.template.js    源码（带占位符），改这个然后重新生成
 gen-client.mjs        把 backdrop.jpg 与 assets/pose-*.png 内联进 client.js
 cordis.patch.yml      bundle 声明

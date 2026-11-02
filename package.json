@@ -31,6 +31,7 @@
     "gen-client.mjs",
     "cordis.patch.yml",
     "backdrop.jpg",
+    "screenshot.jpg",
     "assets/*.png",
     "locale/*.json",
     "icon.svg"
