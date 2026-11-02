@@ -295,6 +295,11 @@ window.__ModuleLoader__.load({
       '  animation-play-state: paused;',
       '  transform: translateY(-3px) scale(1.06);',
       '}',
+      // A modal owns the screen; the row must not float over it.
+      'body:has([role="dialog"]:not([hidden])) .cbd-perch,',
+      'body:has([aria-modal="true"]) .cbd-perch {',
+      '  display: none !important;',
+      '}',
       '@keyframes cbd-perch-bob {',
       '  0%, 100% { translate: 0 0; }',
       '  50%      { translate: 0 -2px; }',
@@ -423,6 +428,7 @@ window.__ModuleLoader__.load({
     // React reconciliation can never eat them. The row is aligned to the card's top edge
     // and stretched across its right half, recomputed whenever the composer resizes.
     let perch = null
+    let perchHeight = 0
 
     function ensurePerch() {
       if (perch && perch.isConnected) return perch
@@ -454,11 +460,14 @@ window.__ModuleLoader__.load({
       // From the card's centre to a small inset on the right, bottom-aligned on its edge.
       const left = Math.round(rect.left + rect.width / 2)
       const right = Math.round(rect.right - 24)
-      const h = el.offsetHeight || 54
       el.style.left = left + 'px'
       el.style.width = Math.max(0, right - left) + 'px'
-      el.style.top = Math.round(rect.top - h + 3) + 'px'
       el.setAttribute('data-ready', '')
+      // Height comes from CSS and never changes, so it is measured once while visible.
+      // Reading offsetHeight on every mutation forced a layout pass per streamed chunk.
+      if (!perchHeight) perchHeight = el.offsetHeight
+      const h = perchHeight || 54
+      el.style.top = Math.round(rect.top - h + 3) + 'px'
     }
 
     let placeQueued = false
@@ -526,6 +535,7 @@ window.__ModuleLoader__.load({
             if (perch) {
               perch.remove()
               perch = null
+              perchHeight = 0
             }
           }
         })
