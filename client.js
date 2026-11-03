@@ -383,6 +383,9 @@ window.__ModuleLoader__.load({
     }
 
     const PARALLAX_PX = 14
+    // How much of the composer's right half the pose row may use. 1 = out to the corner,
+    // 0.6 = the row huddles near the middle. The first pose always stays at the centre.
+    const PERCH_BAND = 0.6
 
     let timer = null
     let cold = true
@@ -487,9 +490,12 @@ window.__ModuleLoader__.load({
         el.removeAttribute('data-ready')
         return
       }
-      // From the card's centre to a small inset on the right, bottom-aligned on its edge.
+      // The row is anchored at the card's centre (so the first pose never moves) and
+      // reaches only PERCH_BAND of the way to the right edge: the remaining poses sit
+      // closer to the middle instead of running out to the corner.
       const left = Math.round(rect.left + rect.width / 2)
-      const right = Math.round(rect.right - 24)
+      const fullBand = rect.right - 24 - left
+      const right = Math.round(left + Math.max(0, fullBand) * PERCH_BAND)
       el.style.left = left + 'px'
       el.style.width = Math.max(0, right - left) + 'px'
       el.setAttribute('data-ready', '')
