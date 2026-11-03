@@ -4,10 +4,10 @@ window.__ModuleLoader__.load({
   factory(require) {
     const IMAGE = '__IMAGE_DATA_URL__'
 
-    // Four cut-out poses of the whale girl, all transparent PNGs, keyed off a chroma
+    // Cut-out poses of the whale girl, all transparent PNGs, keyed off a chroma
     // background. They render as a row sitting on the composer's top edge.
+    // Order here is left-to-right; the row spreads across the card's right half.
     const POSES = [
-      '__POSE_1_DATA_URL__',
       '__POSE_2_DATA_URL__',
       '__POSE_3_DATA_URL__',
       '__POSE_4_DATA_URL__',

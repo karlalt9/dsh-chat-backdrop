@@ -1,10 +1,10 @@
 # dsh-chat-backdrop
 
-> 给 DSH 的聊天界面换一张脸：一张壁纸铺在对话区背后，周边面板变成半透明玻璃，输入框上沿站着四只鲸鱼娘。
+> 给 DSH 的聊天界面换一张脸：一张壁纸铺在对话区背后，周边面板变成半透明玻璃，输入框上沿站着三只鲸鱼娘。
 
 ![实机效果](screenshot.jpg)
 
-<sub>默认工作区：壁纸铺底、侧栏与输入框半透明、输入框上沿站着四只鲸鱼娘</sub>
+<sub>默认工作区：壁纸铺底、侧栏与输入框半透明、输入框上沿站着三只鲸鱼娘</sub>
 
 一个纯客户端的 [DSH](https://github.com/deepseek-ai/deepseek-harness) 插件：不联网、不读本地文件、不加任何命令或工具，只做视觉。
 
@@ -14,7 +14,7 @@
 |---|---|
 | **壁纸** | 用 `body::before` 铺满视口，46 秒一轮缓慢推拉 + 不超过 14px 的指针视差；叠一层噪点、顶部高光和暗角，避免照片直接平铺的廉价感 |
 | **玻璃面板** | 侧栏、设置页与弹窗改成半透明 + `backdrop-filter` 模糊；**输入框卡片故意不加模糊**，原因见下面的「已知问题」 |
-| **鲸鱼娘** | 四张透明姿势图固定在输入框上沿，从卡片中线铺到右侧，随输入框尺寸变化重新定位；用 `MutationObserver` 跟随 composer 挂载，不会被 React 重渲染吃掉。打开设置页或任何对话框时自动隐藏，不挡内容 |
+| **鲸鱼娘** | 三张透明姿势图固定在输入框上沿，从卡片中线铺到右侧，随输入框尺寸变化重新定位；用 `MutationObserver` 跟随 composer 挂载，不会被 React 重渲染吃掉。打开设置页或任何对话框时自动隐藏，不挡内容 |
 | **明暗双主题** | token 同时提供 light / dark 两套取值；描边、表格斑马纹、引用块底色、标题栏压暗层也都走 `--cbd-*` 变量按主题切换，不会在白底上画白线 |
 | **入场动画** | 首次加载与切换会话时有一次约 1.4 秒的渐入；检测到 `prefers-reduced-motion` 时自动跳过 |
 | **零请求** | 图片全部 base64 内联进 `client.js`，运行时没有任何网络请求 |
@@ -35,7 +35,7 @@ dsh plugin --profile desktop add github:karlalt9/dsh-chat-backdrop
 
 ```sh
 # 1. 换壁纸：直接覆盖 backdrop.jpg（建议 16:9，300KB 以内）
-# 2. 换角色姿势：覆盖 assets/pose-1.png ~ pose-4.png（透明背景 PNG，高度 150px 左右最协调）
+# 2. 换角色姿势：覆盖 assets/pose-2.png ~ pose-4.png（透明背景 PNG，高度 150px 左右最协调）
 # 3. 重新内联生成 client.js
 node gen-client.mjs
 ```
@@ -67,7 +67,7 @@ client.template.js    源码（带占位符），改这个然后重新生成
 gen-client.mjs        把 backdrop.jpg 与 assets/pose-*.png 内联进 client.js
 cordis.patch.yml      bundle 声明
 .gitattributes        client.js 标记为生成文件，不参与 diff
-assets/               四张姿势图
+assets/               姿势图（当前使用 pose-2 ~ pose-4）
 locale/               中英文名称与描述
 ```
 
