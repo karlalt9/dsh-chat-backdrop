@@ -28,6 +28,23 @@ window.__ModuleLoader__.load({
     const NOISE =
       'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'140\' height=\'140\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.26\'/%3E%3C/svg%3E")'
 
+    // Whether the theme honours the OS "reduce motion" preference.
+    //
+    // Off by default on purpose: with it on, a machine that has OS animations disabled
+    // gets a completely static background - no drift, no pointer parallax, no intro fade -
+    // which looks like a broken install next to a machine where the same build animates.
+    // Flip to true if you want the accessible behaviour.
+    const RESPECT_REDUCED_MOTION = false
+
+    const REDUCED_MOTION_CSS = RESPECT_REDUCED_MOTION
+      ? [
+          '@media (prefers-reduced-motion: reduce) {',
+          '  body::before { animation: none; transition: none; translate: none; scale: none; }',
+          '  [role="dialog"], [aria-modal="true"] { animation: none; }',
+          '}',
+        ].join('\n')
+      : ''
+
     const CSS = [
       'html, body { background: transparent !important; }',
       '#root, #app, [data-dsh-root] { background-color: transparent !important; }',
@@ -368,10 +385,8 @@ window.__ModuleLoader__.load({
       '    cbd-backdrop-cold 1100ms cubic-bezier(.22,.7,.3,1) both,',
       '    cbd-zoom-in 1100ms cubic-bezier(.22,.7,.3,1) both;',
       '}',
-      '@media (prefers-reduced-motion: reduce) {',
-      '  body::before { animation: none; transition: none; translate: none; scale: none; }',
-      '  [role="dialog"], [aria-modal="true"] { animation: none; }',
-      '}',
+      // Only injected when RESPECT_REDUCED_MOTION is enabled (see the constant below).
+      REDUCED_MOTION_CSS,
     ].join('\n')
 
     const TOKENS = {
@@ -582,7 +597,11 @@ window.__ModuleLoader__.load({
         // surface re-sample its backdrop, and on some GPU/driver combinations that shows
         // up as flicker while the pointer moves. Set PARALLAX_PX to 0 to turn it off.
         ctx.effect(() => {
-          if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          if (
+            RESPECT_REDUCED_MOTION &&
+            window.matchMedia &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ) {
             return
           }
           const root = document.documentElement

@@ -44,6 +44,15 @@ node gen-client.mjs
 
 > `--dsw-specific-sidebar-fill` 同时被窗口框架和标题栏拖拽条使用，所以改它会连带改变标题栏亮度；`client.template.js` 里为此有一条配套的 `[data-windows-titlebar]` 规则，两个要一起改。
 
+## 为什么别人的背景不跟鼠标动
+
+主题**默认不检查**系统的「减少动画」偏好。早期版本遵循 `prefers-reduced-motion`，结果在关掉了 Windows「动画效果」的机器上，整个背景是**完全静止**的——没有推拉、没有视差、没有入场淡入，看起来像装坏了。
+
+想恢复无障碍行为，把 `client.template.js` 里的这个常量改成 `true`，然后重新 `node gen-client.mjs`：
+
+```js
+const RESPECT_REDUCED_MOTION = false
+```
 ## 已知问题
 
 **输入框没有 `backdrop-filter`。** 之前给 composer 卡片加过模糊，结果是鼠标移到发送键上时整个输入框区域持续闪烁。逐步排查删掉了按钮的 `filter`、阴影过渡、悬停样式、卡内全部 `transition`，仍然闪；去掉该卡片的 `backdrop-filter` 后消失。判断是 Chromium 在带背景模糊的元素内部发生重绘时反复重采样背景所致。因此输入框改用不透明度（58%，聚焦 68%）保证可读性。侧栏、对话框、菜单的模糊不受影响。

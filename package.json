@@ -1,6 +1,6 @@
 {
   "name": "dsh-chat-backdrop",
-  "version": "1.11.5",
+  "version": "1.12.0",
   "description": "DSH 聊天界面主题：自定义壁纸 + 玻璃拟态面板，输入框上沿站着三只鲸鱼娘",
   "type": "module",
   "license": "MIT",
