@@ -12,12 +12,13 @@
 
 | | |
 |---|---|
-| **壁纸** | 用 `body::before` 铺满视口，46 秒一轮缓慢推拉 + 不超过 14px 的指针视差；叠一层噪点、顶部高光和暗角，避免照片直接平铺的廉价感 |
+| **壁纸** | 静态图用 `body::before` 铺满视口，46 秒一轮缓慢推拉 + 不超过 14px 的指针视差；另可切换成循环视频（`media/backdrop.mp4`），两者都叠噪点、顶部高光和暗角 |
 | **玻璃面板** | 侧栏、设置页与弹窗改成半透明 + `backdrop-filter` 模糊；**输入框卡片故意不加模糊**，原因见下面的「已知问题」 |
 | **鲸鱼娘** | 三张透明姿势图固定在输入框上沿，从卡片中线铺到右侧，随输入框尺寸变化重新定位；用 `MutationObserver` 跟随 composer 挂载，不会被 React 重渲染吃掉。打开设置页或任何对话框时自动隐藏，不挡内容 |
 | **明暗双主题** | token 同时提供 light / dark 两套取值；描边、表格斑马纹、引用块底色、标题栏压暗层也都走 `--cbd-*` 变量按主题切换，不会在白底上画白线 |
 | **入场动画** | 首次加载与切换会话时有一次约 1.4 秒的渐入；检测到 `prefers-reduced-motion` 时自动跳过 |
-| **零请求** | 图片全部 base64 内联进 `client.js`，运行时没有任何网络请求 |
+| **背景开关** | 输入框下方、上下文用量右侧有一个「视频 / 静图」胶囊按钮，状态记在 localStorage，重启后保持 |
+| **零请求** | 图片与视频全部 base64 内联进 `client.js`，运行时没有任何网络请求 |
 
 ## 安装
 
@@ -36,6 +37,7 @@ dsh plugin --profile desktop add github:karlalt9/dsh-chat-backdrop
 ```sh
 # 1. 换壁纸：直接覆盖 backdrop.jpg（建议 16:9，300KB 以内）
 # 2. 换角色姿势：覆盖 assets/pose-2.png ~ pose-4.png（透明背景 PNG，高度 150px 左右最协调）
+#    换视频壁纸：覆盖 media/backdrop.mp4（H.264 / VP9，无声，建议 30 秒内、20MB 以内）；删掉该文件则只用静态图
 # 3. 重新内联生成 client.js
 node gen-client.mjs
 ```
@@ -53,6 +55,10 @@ node gen-client.mjs
 ```js
 const RESPECT_REDUCED_MOTION = false
 ```
+## 体积与启动
+
+`client.js` 里内联了壁纸、三张姿势图和一整段视频，当前约 **31 MB**。这是刻意的取舍：运行时零请求、下载即用，代价是首次加载和每次启动解析会慢上一点，内存占用也更高。想要更轻的版本，把 `media/backdrop.mp4` 删掉再 `node gen-client.mjs`，体积会回到 0.5 MB 左右，按钮自动消失、背景退回静态图。
+
 ## 已知问题
 
 **输入框没有 `backdrop-filter`。** 之前给 composer 卡片加过模糊，结果是鼠标移到发送键上时整个输入框区域持续闪烁。逐步排查删掉了按钮的 `filter`、阴影过渡、悬停样式、卡内全部 `transition`，仍然闪；去掉该卡片的 `backdrop-filter` 后消失。判断是 Chromium 在带背景模糊的元素内部发生重绘时反复重采样背景所致。因此输入框改用不透明度（58%，聚焦 68%）保证可读性。侧栏、对话框、菜单的模糊不受影响。
@@ -77,6 +83,7 @@ gen-client.mjs        把 backdrop.jpg 与 assets/pose-*.png 内联进 client.js
 cordis.patch.yml      bundle 声明
 .gitattributes        client.js 标记为生成文件，不参与 diff
 assets/               姿势图（当前使用 pose-2 ~ pose-4）
+media/backdrop.mp4    视频壁纸素材，构建时内联进 client.js
 locale/               中英文名称与描述
 ```
 

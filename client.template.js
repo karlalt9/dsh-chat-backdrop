@@ -3,6 +3,8 @@ window.__ModuleLoader__.load({
   id: 'dsh-chat-backdrop',
   factory(require) {
     const IMAGE = '__IMAGE_DATA_URL__'
+    // Optional looping video wallpaper. Empty string -> static image only.
+    const VIDEO = '__VIDEO_DATA_URL__'
 
     // Cut-out poses of the whale girl, all transparent PNGs, keyed off a chroma
     // background. They render as a row sitting on the composer's top edge.
@@ -138,6 +140,23 @@ window.__ModuleLoader__.load({
       '    radial-gradient(145% 125% at 50% 42%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, .32) 100%);',
       '  background-repeat: no-repeat, no-repeat;',
       '}',
+      // Video wallpaper sits between the still image and the lighting pass. Both share
+      // z-index -2, and the element paints after body::before, so it covers the image;
+      // body::after (grain + key light + vignette) still lands on top of it.
+      '.cbd-video {',
+      '  position: fixed;',
+      '  inset: 0;',
+      '  width: 100vw;',
+      '  height: 100vh;',
+      '  object-fit: cover;',
+      '  object-position: center center;',
+      '  z-index: -2;',
+      '  pointer-events: none;',
+      '  background: transparent;',
+      '}',
+      // While the video runs the still image underneath is invisible, so its 46s drift
+      // would only burn GPU for nothing.
+      'html.cbd-video-on body::before { animation: none; }',
 
       // ---- markdown reading detail -----------------------------------------
       // Plain element selectors only: no build-specific class names involved.
@@ -309,6 +328,47 @@ window.__ModuleLoader__.load({
       '  10%  { --cbd-ft: 22px; --cbd-fb: 22px; }',
       '  90%  { --cbd-ft: 22px; --cbd-fb: 22px; }',
       '  100% { --cbd-ft: 22px; --cbd-fb: 0px; }',
+      '}',
+
+      // ---- wallpaper toggle ------------------------------------------------
+      // Sits in the composer's dock row, immediately after the context-usage entry (the
+      // slot order below puts it there). No transitions and no backdrop-filter: the card
+      // around it must stay free of paint animations.
+      '.cbd-bg-toggle {',
+      '  display: inline-flex;',
+      '  align-items: center;',
+      '  gap: 6px;',
+      '  margin-left: 6px;',
+      '  padding: 3px 10px;',
+      '  border-radius: 999px;',
+      '  border: 1px solid var(--cbd-l3);',
+      '  background: rgba(8, 14, 26, .55);',
+      '  color: var(--dsw-alias-label-secondary, rgba(233,241,255,.75));',
+      '  font: inherit;',
+      '  font-size: 11px;',
+      '  line-height: 16px;',
+      '  cursor: pointer;',
+      '  user-select: none;',
+      '  transition: none;',
+      '}',
+      '.cbd-bg-toggle:hover {',
+      '  border-color: var(--cbd-l5);',
+      '  color: var(--dsw-alias-label-primary, #fff);',
+      '}',
+      '.cbd-bg-toggle:focus-visible {',
+      '  outline: 2px solid var(--dsw-focus-ring-color, #60a5fa);',
+      '  outline-offset: 2px;',
+      '}',
+      '.cbd-bg-toggle-dot {',
+      '  width: 6px;',
+      '  height: 6px;',
+      '  border-radius: 50%;',
+      '  background: rgba(148, 163, 184, .9);',
+      '  flex: none;',
+      '}',
+      '.cbd-bg-toggle.is-on .cbd-bg-toggle-dot {',
+      '  background: #3ddad7;',
+      '  box-shadow: 0 0 6px rgba(61, 218, 215, .75);',
       '}',
 
       // ---- whale-girl perch ------------------------------------------------
@@ -545,6 +605,113 @@ window.__ModuleLoader__.load({
       for (const el of nodes) markScroller(el)
     }
 
+    // Video wallpaper. Same reasoning as the perch: it lives outside React's tree, is
+    // re-inserted if the app wipes body children, and falls back to the still image when
+    // no video is bundled or playback is refused.
+    let videoEl = null
+    let videoObjectUrl = null
+
+    // 23 MB of media is best handed to the element as a Blob, not as a giant data: URL:
+    // data: sources are copied and re-parsed by the media stack, and seeking/looping on
+    // them is unreliable at this size.
+    function videoSource() {
+      if (!VIDEO) return null
+      if (videoObjectUrl) return videoObjectUrl
+      try {
+        const comma = VIDEO.indexOf(',')
+        if (comma < 0) return VIDEO
+        const binary = atob(VIDEO.slice(comma + 1))
+        const bytes = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+        videoObjectUrl = URL.createObjectURL(new Blob([bytes], { type: 'video/mp4' }))
+        return videoObjectUrl
+      } catch (err) {
+        return VIDEO
+      }
+    }
+
+    function ensureVideoLayer() {
+      if (!VIDEO) return null
+      if (videoEl && videoEl.isConnected) return videoEl
+      videoEl = document.createElement('video')
+      videoEl.className = 'cbd-video'
+      videoEl.setAttribute('aria-hidden', 'true')
+      videoEl.muted = true
+      videoEl.loop = true
+      videoEl.autoplay = true
+      videoEl.playsInline = true
+      videoEl.preload = 'auto'
+      videoEl.disablePictureInPicture = true
+      videoEl.src = videoSource()
+      // If the file cannot be decoded, hide the layer and let the still image show.
+      videoEl.addEventListener('error', () => {
+        videoEnabled = false
+        applyVideoState()
+      })
+      document.body.insertBefore(videoEl, document.body.firstChild)
+      videoEl.style.display = videoEnabled ? '' : 'none'
+      if (videoEnabled) {
+        const played = videoEl.play()
+        if (played && typeof played.catch === 'function') {
+          // Autoplay refused (power saving, or the platform wants a gesture). The still
+          // image stays visible, so this is a graceful degradation, not a failure.
+          played.catch(() => {
+            videoEnabled = false
+            applyVideoState()
+          })
+        }
+      }
+      return videoEl
+    }
+
+    // ---- video wallpaper toggle -------------------------------------------
+    const VIDEO_PREF_KEY = 'cbd-bg-video'
+
+    function readVideoPref() {
+      if (!VIDEO) return false
+      try {
+        const stored = window.localStorage.getItem(VIDEO_PREF_KEY)
+        if (stored === '1') return true
+        if (stored === '0') return false
+      } catch (err) {
+        /* storage blocked: fall through to the default */
+      }
+      return true // a bundled video is meant to be seen
+    }
+
+    let videoEnabled = readVideoPref()
+    const videoListeners = new Set()
+
+    function applyVideoState() {
+      const root = document.documentElement
+      if (videoEnabled) {
+        ensureVideoLayer()
+        root.classList.add('cbd-video-on')
+        if (videoEl) {
+          videoEl.style.display = ''
+          const played = videoEl.play()
+          if (played && typeof played.catch === 'function') played.catch(() => {})
+        }
+      } else {
+        root.classList.remove('cbd-video-on')
+        if (videoEl) {
+          videoEl.pause()
+          videoEl.style.display = 'none'
+        }
+      }
+      for (const fn of videoListeners) fn(videoEnabled)
+    }
+
+    function setVideoEnabled(next) {
+      videoEnabled = !!next
+      try {
+        window.localStorage.setItem(VIDEO_PREF_KEY, videoEnabled ? '1' : '0')
+      } catch (err) {
+        /* ignore */
+      }
+      applyVideoState()
+    }
+
     return {
       inject: ['theme', 'slots'],
       apply(ctx) {
@@ -561,6 +728,7 @@ window.__ModuleLoader__.load({
           markComposer()
           markScrollers()
           placePerch()
+          applyVideoState()
           const onScroll = (ev) => {
             const target = ev.target
             if (target && target.nodeType === 1) markScroller(target)
@@ -577,12 +745,25 @@ window.__ModuleLoader__.load({
           const observer = new MutationObserver(() => {
             markComposer()
             schedulePerch()
+            if (videoEnabled) ensureVideoLayer()
           })
           observer.observe(document.body, { childList: true, subtree: true })
           return () => {
             document.removeEventListener('scroll', onScroll, { capture: true })
             window.removeEventListener('resize', onResize)
             observer.disconnect()
+            document.documentElement.classList.remove('cbd-video-on')
+            if (videoEl) {
+              videoEl.pause()
+              videoEl.removeAttribute('src')
+              videoEl.load()
+              videoEl.remove()
+              videoEl = null
+            }
+            if (videoObjectUrl) {
+              URL.revokeObjectURL(videoObjectUrl)
+              videoObjectUrl = null
+            }
             if (perch) {
               perch.remove()
               perch = null
@@ -655,6 +836,37 @@ window.__ModuleLoader__.load({
               ),
             ),
           )
+
+          if (VIDEO) {
+            const BgToggle = () => {
+              const [on, setOn] = React.useState(videoEnabled)
+              React.useEffect(() => {
+                const fn = (next) => setOn(next)
+                videoListeners.add(fn)
+                return () => videoListeners.delete(fn)
+              }, [])
+              return React.createElement(
+                'button',
+                {
+                  type: 'button',
+                  className: 'cbd-bg-toggle' + (on ? ' is-on' : ''),
+                  'aria-pressed': on ? 'true' : 'false',
+                  title: on ? '背景：视频壁纸（点击切回静态图）' : '背景：静态图（点击切换到视频）',
+                  onClick: () => setVideoEnabled(!videoEnabled),
+                },
+                React.createElement('span', { className: 'cbd-bg-toggle-dot' }),
+                React.createElement('span', null, on ? '视频' : '静图'),
+              )
+            }
+            ctx.effect(() =>
+              ctx.slots.inject('conversation.composer.dock', () =>
+                ctx.slots.register(
+                  { name: 'conversation.composer.dock', id: 'cbd-bg-toggle', order: 2 },
+                  BgToggle,
+                ),
+              ),
+            )
+          }
         } else {
           playIntro()
         }
